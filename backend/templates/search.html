@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1>{% block title %} Search for a card{% endblock %}</h1>
+    <form method="post">
+        <label for="name">Name</label>
+        <br>
+        <input type="text" name="name"
+               placeholder="Enter name"
+               value="{{ request.form['name'] }}"></input>
+        <br>
+
+        <button type="submit">Submit</button>
+    </form>
+    <ul> <!-- Make this table-->
+        {% for card in cards %}
+            <li>{{ card[1] }} - {{ card[2] }} - {{ card[3] }} - {{ card[4] }} </li>
+        {% endfor %}
+    </ul>
+{% endblock %}

@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1>{% block title %} Search for a card{% endblock %}</h1>
+    <form method="post">
+        <label for="ID">ID</label>
+        <br>
+        <input type="number" name="id"
+               placeholder="Enter id"
+               value="{{ request.form['id'] }}"></input>
+        <br>
+
+        <button type="submit">Submit</button>
+    </form>
+{% endblock %}
