@@ -1,8 +1,10 @@
 from flask import Flask, render_template, url_for, request, redirect, jsonify
 import mysql.connector as dbapi # mysql
+from flask_cors import CORS
 
 
 app = Flask(__name__)
+CORS(app)
 db_config = {
     'host': 'localhost',
     'user': 'root',
@@ -58,7 +60,15 @@ def get_cards():
     select_query = 'SELECT * FROM CARDS '
     cursor.execute(select_query)
     cards = cursor.fetchall()
-    return render_template("get.html", cards = cards)
+    result = []
+    for card in cards:
+        result.append({
+            'name': card[1],
+            'collection': card[2], 
+            'value': card[3],
+            'number': card[4],
+        })
+    return jsonify(result)
 @app.route("/delete", methods=['POST', 'GET'])
 def delete():
     if request.method == 'POST':
@@ -88,7 +98,7 @@ def update():
     else:
         return render_template('update.html')
 @app.route('/update/<int:id>')
-def update(id,name,collection,value,number):
+def update_card(id,name,collection,value,number):
     db_connection = dbapi.connect(**db_config)
     cursor = db_connection.cursor()
     select_query = 'UPDATE CARDS SET NAME = %s, COLLECTION = %s, VALUE = %s, NUMBER = %s WHERE ID = %s'
