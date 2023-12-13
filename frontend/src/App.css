@@ -28,11 +28,18 @@
   color: #61dafb;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.navbar {
+  list-style: none;
+  padding: 0;
+  display: flex;
+}
+
+.navbar li {
+  margin-right: 10px;
+}
+
+.navbar a {
+  text-decoration: none;
+  color: #333;
+  font-weight: bold;
 }

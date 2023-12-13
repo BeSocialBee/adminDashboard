@@ -26,32 +26,26 @@ cursor.execute(statement)
 cursor.close()
 db_connection.close()
 
-@app.route('/')
-def home():
-    return render_template('home.html')
-     
-# Running app
-@app.route('/card_form', methods=['GET', 'POST'])
-def card_form():
-    if request.method == 'POST':
-        id = request.form['id']
-        name = request.form['name']
-        collection = request.form['collection']
-        value = request.form['value']
-        number = request.form['number']
-        return redirect(url_for('add_card', id = id, name = name, collection = collection, value = value, number = number))
-    else:
-        return render_template('add.html')
-@app.route('/add/<int:id>/<string:name>/<string:collection>/<int:value>/<int:number>')
-def add_card(id,name,collection,value,number):
-    db_connection = dbapi.connect(**db_config)
-    cursor = db_connection.cursor()
-    select_query = 'INSERT INTO CARDS VALUES(%s,%s,%s,%s,%s)'
-    cursor.execute(select_query, (id,name,collection,value,number))
-    db_connection.commit()
-    cursor.close()
-    db_connection.close()
-    return redirect(url_for('card_form'))
+@app.route('/add', methods=['POST'])
+def add_card():
+    try:
+        name = request.form.get('name')
+        collection = request.form.get('collection')
+        value = request.form.get('value')
+        number = request.form.get('number')
+
+        db_connection = dbapi.connect(**db_config)
+        cursor = db_connection.cursor()
+        select_query = 'INSERT INTO CARDS (NAME, COLLECTION, VALUE, NUMBER) VALUES (%s, %s, %s, %s)'
+        cursor.execute(select_query, (name, collection, value, number))
+        db_connection.commit()
+        cursor.close()
+        db_connection.close()
+
+        return jsonify(message='Card added successfully')
+
+    except Exception as e:
+        return jsonify(error=str(e))
 
 @app.route("/get", methods=["GET"])
 def get_cards():
@@ -63,20 +57,39 @@ def get_cards():
     result = []
     for card in cards:
         result.append({
+            'id': card[0],
             'name': card[1],
             'collection': card[2], 
             'value': card[3],
             'number': card[4],
         })
-    return jsonify(result)
-@app.route("/delete", methods=['POST', 'GET'])
-def delete():
-    if request.method == 'POST':
-        id = request.form['id']
-        return redirect(url_for('delete_card', id = id))
-    else:
-        return render_template('delete.html')
-@app.route('/delete/<int:id>')
+    return jsonify(cards = result)
+@app.route("/get/<int:id>", methods=["GET"])
+def get_card_by_id(id):
+    try:
+        db_connection = dbapi.connect(**db_config)
+        cursor = db_connection.cursor()
+
+        # Select a card by its ID
+        select_query = 'SELECT * FROM CARDS WHERE ID = %s'
+        cursor.execute(select_query, (id,))
+        card = cursor.fetchone()
+        if card:
+            result = [{
+                'id': card[0],
+                'name': card[1],
+                'collection': card[2], 
+                'value': card[3],
+                'number': card[4],
+            }]
+            return jsonify(card=result)
+        else:
+            return jsonify(message=f'Card with ID {id} not found'), 404
+
+    except Exception as e:
+        return jsonify(error=str(e)), 500
+    
+@app.route('/delete/<int:id>', methods = ["DELETE"])
 def delete_card(id):
     db_connection = dbapi.connect(**db_config)
     cursor = db_connection.cursor()
@@ -85,20 +98,15 @@ def delete_card(id):
     db_connection.commit()
     cursor.close()
     db_connection.close()
-    return redirect(url_for('delete'))
-@app.route("/update", methods=['POST', 'GET'])
-def update():
-    if request.method == 'POST':
-        id = request.form['id']
-        name = request.form['name']
-        collection = request.form['collection']
-        value = request.form['value']
-        number = request.form['number']
-        return redirect(url_for('update_card', id = id, name = name, collection = collection, value = value, number = number))
-    else:
-        return render_template('update.html')
-@app.route('/update/<int:id>')
-def update_card(id,name,collection,value,number):
+    return jsonify(message=f'Card with ID {id} deleted successfully')
+
+@app.route('/update/<int:id>',  methods=['PUT'])
+def update_card(id):
+    data = request.json
+    name = data.get('name')
+    collection = data.get('collection')
+    value = data.get('value')
+    number = data.get('number')
     db_connection = dbapi.connect(**db_config)
     cursor = db_connection.cursor()
     select_query = 'UPDATE CARDS SET NAME = %s, COLLECTION = %s, VALUE = %s, NUMBER = %s WHERE ID = %s'
@@ -106,14 +114,7 @@ def update_card(id,name,collection,value,number):
     db_connection.commit()
     cursor.close()
     db_connection.close()
-    return redirect(url_for('update'))
-@app.route('/search', methods=['GET', 'POST'])
-def search():
-    if request.method == 'POST':
-        name = request.form['name']
-        return redirect(url_for('search_results', name = name))
-    else:
-        return render_template('search.html')
+    return jsonify(message=f'Card with ID {id} updated successfully')
 
 @app.route('/search_results/<string:name>', methods=['GET'])
 def search_results(name):
@@ -124,7 +125,17 @@ def search_results(name):
     cards = cursor.fetchall()
     cursor.close()
     db_connection.close()
-    return render_template('get.html', cards = cards)
+    result = []
+    for card in cards:
+        result.append({
+            'id': card[0],
+            'name': card[1],
+            'collection': card[2],
+            'value': card[3],
+            'number': card[4],
+        })
+
+    return jsonify(cards=result)
 
 if __name__ == '__main__':
     app.run(debug=True)

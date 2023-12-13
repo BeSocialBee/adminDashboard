@@ -1,46 +1,38 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from 'react';
+import { BrowserRouter as Router, Route, Routes, Link} from 'react-router-dom';
+
 import "./App.css";
 
-function App() {
-    const [cards, setCards] = useState([]);
+import Home from './components/home.js';
+import CardOperation from './components/cardOperation.js'
+import Sidebar from './components/sidebar.js';
+import AddCard from './components/add.js';
+import UpdateCard from './components/update.js';
+const App = () => {
+  const [commonState, setCommonState] = useState('Initial State');
 
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const response = await fetch("http://localhost:5000/get");
+  return (
+    <Router>
+      <div>
+        <Sidebar className='sidebar'>
+            
+        </Sidebar>
 
-                if (!response.ok) {
-                    throw new Error(`HTTP error! Status: ${response.status}`);
-                }
+        <hr />
 
-                const cardsData = await response.json();
-
-                setCards(cardsData);
-                console.log("API response:", cardsData);  // Log the response
-            } catch (error) {
-                console.error("Error fetching data:", error);
-            }
-        };
-
-        fetchData();
-    }, []);
-
-    return (
-        <div className="App">
-            <header className="App-header">
-                <h1>React and Flask</h1>
-                {cards.map((card, index) => (
-                    <div key={index}>
-                        <p>{card.name}</p>
-                        <p>{card.collection}</p>
-                        <p>{card.value}</p>
-                        <p>{card.number}</p>
-                        <hr />
-                    </div>
-                ))}
-            </header>
+        <div className="content">
+          <Routes>
+            <Route path="/" element={<Home />} />
+            {/*<Route path="/Collection Operation" element={<CollectionOperation />} />*/}
+            <Route path="/CardOperation" element={<CardOperation />} />
+            <Route path="/add" element={<AddCard />} />
+            <Route path="/update/:id" element={<UpdateCard />} />
+            /*<Route path="/User and Spin Operations" element={<cardOperation />} />*/
+          </Routes>
         </div>
-    );
-}
+      </div>
+    </Router>
+  );
+};
 
 export default App;
